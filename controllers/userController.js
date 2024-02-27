@@ -396,9 +396,9 @@ console.log("email", email)
   }
 
 
-
-  const {_id, firstName, lastName, email:userEmail} = foundUser
   foundUser.isLoggedIn = true
+  const {_id, firstName, lastName, email:userEmail, isLoggedIn } = foundUser
+
   await foundUser.save()
 
 // create jwt token and cookie
@@ -419,7 +419,7 @@ console.log("jwt", jwt)
     lastName,
     userEmail,
     jwt,
-  
+    isLoggedIn
   })
     console.log("this is the magic token email", email)
   } catch (error) {
