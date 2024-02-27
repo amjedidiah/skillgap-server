@@ -1,23 +1,56 @@
 const passport = require("passport");
 const expressAsyncHandler = require("express-async-handler");
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const UserModel = require("../models/user");
-
-
+const { Magic } = require('@magic-sdk/admin');
 const crypto = require("crypto");
 const sendAccountVerificationEmail = require("../utils/sendAccountVerificationEmail");
-const sendPasswordChangeEmail  = require("../utils/sendPasswordChangeEmail");
+const { createToken, validateJwt } = require("../utils/jwt");
+const sendSuccessEmail = require("../utils/sendSuccessEmail");
+
+
+
+
+const magicTokenValidationUserController = async (req, res) => {
+  const { magicToken } = req.body
+
+  // authenticate magicToken
+  if(!magicToken)  throw new Error("Magic token is required")
+ console.log("this is the magic token", magicToken)
+    // connecting to magic server
+  const magic = await Magic.init(process.env.Magic_Api_Key)
+ 
+// the magic.token.validate =>  returns void if token is authentic and not expired. If the token is forged or otherwise invalid, the function will throw a descriptive error
+ magic.token.validate(magicToken);
+
+// get magic token email
+const {issuer} = await magic.users.getMetadataByToken(magicToken);
+console.log("this is the magic token issuer", issuer)
+const jwt = createToken(issuer)
+console.log("this is the jwt", jwt)
+return res.status(200).json({jwt})
+  
+}
 
 const userRegisterController = expressAsyncHandler(async (req, res) => {
   try {
-    console.log(req.body)
-    const { firstName, lastName, email, phoneNumber, region, password, userName } = req.body
-    if(!firstName || !email || !phoneNumber || !region || !password | !userName || !lastName) {
+    const { firstName, lastName, email, phoneNumber, region, userName, jwt } = req.body
+    if(!firstName || !email || !phoneNumber || !region || !userName || !lastName ) {
       throw new Error("Missing credentials");
     }
+
+
+    console.log("this is the jwt", jwt)
+
+    // verify the jwt
+const isJwtValid = validateJwt(jwt)
+
+    if(!jwt || !isJwtValid) throw new Error("Email validation failed ")
+    const emailToLowercase = email.toLowerCase()
+    req.body.email = emailToLowercase
+    
     const doesUserExist = await UserModel.findOne({
-      email
+       email:emailToLowercase
     });
 
     if (doesUserExist) {
@@ -30,16 +63,22 @@ const userRegisterController = expressAsyncHandler(async (req, res) => {
       throw new Error("User name already taken ");
     }
     
-    // Hash the password with the generated salt
- const hashedPassword = await bcrypt.hash(password, 10)
-    const newUser = await UserModel.create({
-      ...req.body, password: hashedPassword,  skillGapTag: userName
-    });
 
+
+
+    // save user to db
+
+    const createdUser = await UserModel.create({
+      ...req.body,  skillGapTag: userName
+    });
+ 
+
+    // send success email
+await sendSuccessEmail(email,'Email Verification Success', firstName)
     res.status(201).json({
       status: "success",
       message: "User created successfully",
-      data: newUser._id,
+      data: createdUser._id,
     });
   } catch (error) {
     throw new Error(error.message);
@@ -272,138 +311,120 @@ const emailVerificationTokenUserController = expressAsyncHandler(async(req, res)
  
  const emailVerificationTokenConfirmationUserController =  expressAsyncHandler(async(req, res) => {
  const {emailToken} = req.params
+ console.log("this is the email token", emailToken)
  if(!emailToken){
-    throw new Error("User token is required")
+    throw new Error("User email verification token is required")
  }
- 
- 
- // find the user in the db
- const user = await UserModel.findById(req.user)
- if(!user){
-  return res.status(401).json({
-     message: "User not found"
-   })
- }
- 
- // convert the token to the format stored in the db
- const encryptedToken = crypto.createHash("sha256").update(emailToken).digest("hex");
- 
- 
- // check if encryptedToken is the same as that saved in db and also has not expired, then find the user
- const foundUser = await UserModel.findOne({
-   accountVerificationToken: encryptedToken,
-   accountVerificationTokenExpires:{ $gt: Date.now()}
+ // check if emailToken is valid and has not expired
+
+//  encrypt the email to the encrypted version
+const encryptedToken = crypto.createHash("sha256").update(emailToken).digest("hex")
+ const foundUser= await UserModel.findOne({
+  accountVerificationToken: encryptedToken,
+  accountVerificationTokenExpires: {$gt: Date.now()}
  })
- if(!foundUser){
-  return res.status(401).json({
-     message:"email token expired or invalid",
-     status:"failed",
-     encryptedToken,
-     user
-   })
- }
+ if(!foundUser) throw new Error("Invalid account verification token or token expired")
+
+
+
  foundUser.isEmailVerified = true
  foundUser.accountVerificationToken = null
  foundUser.accountVerificationTokenExpires = null
  await foundUser.save()
- 
- res.status(200).json({message:"email confirmation successful",foundUser})
+ console.log("validated user",foundUser)
+// \\views\\layouts\\main.handlebars'"
+
+ const {email, firstName} = foundUser
+ await sendSuccessEmail(email,'Email Verification Success', firstName)
+ console.log("ran here")
+//  res.status(200).json({message:"sucess"})
+ res.render("webMessageForSuccessEmailVerification", {firstName})
  })
- 
- const passwordResetGeneratorUserController = expressAsyncHandler(async(req, res) => {
 
-  const user = await UserModel.findById(req.user)
-  console.log(user)
-  if(!user){
-   throw new Error("User not found")
-  }
- const randomNumber =  await user.generatePasswordUpdate()
 
-const savedUser = await user.save()
-  await sendPasswordChangeEmail("ukonulucky@gmail.com", randomNumber )
-  res.status(200).json({
-    message:"email sent successfully",
-    randomNumber,
-    savedUser
-
-  })
- })
- 
-
- const confirmUserPasswordToken= expressAsyncHandler(async(req, res)=> {
+ const sendEmailVerificationUserController = expressAsyncHandler(async(req, res) => {
+  const {email} = req.body;
+  if(!email) throw new Error("Please enter a valid email")
   
-  const {passwordToken} = req.body
- if(!passwordToken){
-    throw new Error("Passwprd token is required")
- }
- 
- 
- // find the user in the db
- const user = await UserModel.findById(req.user)
- if(!user){
-  return res.status(401).json({
-     message: "User not found"
-   })
- }
- 
+  const emailToLowercase = email.toLowerCase()
+  req.body.email = emailToLowercase
+  
+  const user = await UserModel.findOne({
+     email:emailToLowercase
+  });
+
+  if (!user) {
+    throw new Error("Email does not exist please register");
+  }
 
 
- 
- 
- // check if the passwordToken is the same as that saved in db and also has not expired, then find the user
- console.log("this is the passwordToken", passwordToken)
- const foundUser = await UserModel.findOne({
-  passwordRestToken: passwordToken,
-  passwordResetTokenExpires:{ $gt: Date.now()}
- })
- if(!foundUser){
-  return res.status(401).json({
-     message:"password token expired or invalid",
-     status:"failed",
-     passwordToken,
-     user
-   })
- }
+// generated an encrypted email token
+  const emailToken = await user.generateEmailVerificationToken()
+  await user.save()
 
- foundUser.passwordRestToken = null
- foundUser.passwordResetTokenExpires = null
- foundUser.passwordChangeActivation = true
- await foundUser.save()
- 
- res.status(200).json({message:"Password change mode activated",foundUser})
+  // emailTo, emailSubject, firstName, id
+await sendAccountVerificationEmail(user.email, "Account Verification", user?.firstName, emailToken)
 
-
-
+  res.status(201).json({
+    status: "success",
+    message: "Veification email sent successfully",
+    data: user._id,
+  });
  })
 
- 
-const changePasswordUserController = expressAsyncHandler(async(req, res) =>{
-    const user = await UserModel.findById(req.user);
-    if(!user){
-    throw new Error("User not found")
-    }
-    console.log("user before password change", user)
-    const {password} = req.body
-    if(!password){
-        throw new Error("missing credentials")
-      }
- if(!user.passwordChangeActivation){
-   throw new Error("failed to validate password password activation token")     
- }
 
-   // Hash the password with the generated salt
-   const hashedPassword = await bcrypt.hash(password, 10)
 
- user.password = hashedPassword
-user.passwordChangeActivation = false
-await  user.save()
 
-return res.status(200).json({
-  statusbar: "success",
-  message:"User password changed successfully",
-  user
-})
+const loginUserWithMagic = expressAsyncHandler(async (req, res) => {
+  try {
+    const { magicToken } = req.body
+    // connecting to magic server
+    const magic = await Magic.init(process.env.Magic_Api_Key)
 
+    // authenticate magicToken
+    if(!magicToken) throw new Error("login token is required")
+    // the magic.token.validate =>  returns void if token is authentic and not expired. If the token is forged or otherwise invalid, the function will throw a descriptive error
+   magic.token.validate(magicToken);
+
+  // get magic token email
+  const {email} = await magic.users.getMetadataByToken(magicToken)
+console.log("email", email)
+  // get the user with email from the db
+  const foundUser = await UserModel.findOne({email})
+  if(!foundUser){
+  throw new Error("User not found")
+  }
+
+
+
+  const {_id, firstName, lastName, email:userEmail} = foundUser
+  foundUser.isLoggedIn = true
+  await foundUser.save()
+
+// create jwt token and cookie
+const jwt = createToken(_id)
+console.log("jwt", jwt)
+// res.cookie("user-login",jwt, {
+//   maxAge: 60 * 60 * 24 * 1000, // 24 hours
+//   secure: false, // Set to true if using HTTPS
+//   httpOnly: true, // Enhances security by preventing client-side access
+//   sameSite: true // Mitigates CSRF attacks
+// })
+
+  res.status(200).json({
+    status:true,
+    message:"user logged in successfully",
+    id: _id,
+    firstName,
+    lastName,
+    userEmail,
+    jwt,
+    isLoggedIn
+  })
+    console.log("this is the magic token email", email)
+  } catch (error) {
+    throw new Error(error)
+  }
 })
 
 module.exports = {
@@ -417,8 +438,7 @@ module.exports = {
   logOutUserController,
   emailVerificationTokenUserController,
   emailVerificationTokenConfirmationUserController,
-  passwordResetGeneratorUserController,
-  confirmUserPasswordToken,
-  changePasswordUserController
-
+  loginUserWithMagic,
+  sendEmailVerificationUserController,
+  magicTokenValidationUserController 
 };

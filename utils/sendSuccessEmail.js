@@ -2,11 +2,10 @@ const nodemailer = require('nodemailer');
 const path = require('path')
 const hbs = require('nodemailer-express-handlebars');
 
-
-const sendAccountVerificationEmail = async (emailTo, emailSubject, firstName, id) => {
-
+const sendSuccessEmail = async (emailTo, emailSubject, firstName) => {
   try{
-// configurng handlebars option
+// configuring handlebars option
+console.log("ran email success", emailTo, emailSubject, firstName)
  const handlebarOptions = {
   viewEngine: {
     extName: ".handlebars",
@@ -25,7 +24,6 @@ const transporter= nodemailer.createTransport({
     auth:{
         user:"ukonulucky@gmail.com",
         pass:"usnk dsvz bkjt ktyp"
-
     }
 })
 
@@ -37,10 +35,9 @@ var mailOptions = {
   from: 'Skill Gap',
   to: emailTo,
   subject: emailSubject,
-  template: 'welcome',
+  template: 'emailVerificationSuccess',
   context: {
-     firstName,
-       id
+     firstName
   }
 
 };
@@ -53,4 +50,4 @@ console.log("email sent successfully", info.messageId)
 
 }
 
-module.exports = sendAccountVerificationEmail
+module.exports = sendSuccessEmail 

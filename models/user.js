@@ -36,11 +36,6 @@ const userSchema = mongoose.Schema({
                 type: String,
                  required: true
                 },
-    password: {
-        type: String, 
-        required: true
-    },
-    
     transferPin: {
         type: Number, 
         required: false
@@ -57,31 +52,35 @@ const userSchema = mongoose.Schema({
     },
     accountVerificationToken: { type: String, default: null },
     accountVerificationTokenExpires: { type: Date, default: null },
-    passwordRestToken: { type: String, default: null },
-    passwordResetTokenExpires: { type: Date, default: null },
-    passwordChangeActivation: { type: Boolean, default: false },
+   
     
     twitter: {
         type: String,
-          default: null
+        default: null,
         },
      tiktok: {
             type: String, 
-              default: null
+            default: null,
             },
     facebook: {
                 type: String,
-                  default: null
+                default: null,
                 },
     youtube:{
         type: String,
-         unique: true,
+         default: null,
+         
     },
     isEmailVerified:{
     type: Boolean,
     default: false
     },
+    expoPushNotificationToken:{
+    type: Boolean,
+    default: false
+    },
     totalEarnings: { type: Number, default: 0 },
+    isLoggedIn: { type: Boolean, default: false}
     
     
 }, {timestamps: true})
@@ -96,23 +95,6 @@ userSchema.methods.generateEmailVerificationToken = function () {
   this.accountVerificationTokenExpires = Date.now() + 20 * 60 * 1000 // expires in 20 minutes
 
   return emailToken
-}
-
-userSchema.methods.generatePasswordUpdate = function(){
-  
-
-   // generate six random integers
-   const randomNumber = generateRandomIntegers(1, 1000000, 800000)
-
-   console.log("this is the random number", randomNumber)
-
- 
-   
-  this.passwordRestToken = randomNumber.toString() ;
- 
-  this.passwordResetTokenExpires = Date.now() + 20 * 60 * 1000 // expires in 20 minutes
-  
-   return randomNumber.toString()
 }
 
 

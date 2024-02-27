@@ -1,0 +1,131 @@
+{{!-- <!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome to Skill Gap Gaming Zone</title>
+</head>
+ <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    h1 {
+      color: #4CAF50;
+    }
+
+    p {
+      margin-bottom: 15px;
+    }
+
+    footer {
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+      font-size: 12px;
+      color: #777;
+    }
+  </style>
+<body>
+    <div class="container">
+      <h1>Hello {{ firstName }}</h1>
+  <p>
+Thank you for signing up for Skill Gap!. To complete the registration process and ensure the security of your account, please verify your email address.
+To verify your email address, click on the following link:
+
+<a href="http://localhost:7000/api/v1/user/account-verification-email/{{id}}">Click Here</a></p>
+
+<p>
+If you are unable to click the link, please copy and paste it into your browser's address bar.
+
+Verification Link: http://localhost:7000/api/v1/user/account-verification-email/{{id}}
+</p>
+<p class="others">
+Please note that this link is valid for the next 20 minutes. After that, you may request a new verification email by clicking the verify email link in the login screen of the skill gap app.
+
+If you did not sign up for Skill Gap, please ignore this email.
+
+</p>
+<footer>
+<p>  Thank you for choosing Skill Gap!
+
+Best regards,</p>
+</footer>
+
+    </div>
+</body>
+</html> --}}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verification</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    h1 {
+      color: #4CAF50;
+    }
+
+    p {
+      margin-bottom: 15px;
+    }
+
+    footer {
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+      font-size: 12px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Email Verification</h1>
+    <p>Thank you for signing up for Skill Gap!. To complete the registration process and ensure the security of your account, please verify your email address.
+To verify your email address, click on the following link:
+
+<a href="http://localhost:7000/api/v1/user/account-verification-email/{{id}}">Click Here</a></p>
+</p>
+    <p>Please note that this link is valid for the next 20 minutes. After that, you may request a new verification email by clicking the verify email link in the login screen of the skill gap app.
+If you did not sign up for Skill Gap, please ignore this email.</p>
+    
+    
+   <footer>
+<p>  Thank you for choosing Skill Gap!
+
+Best regards,</p>
+</footer>
+  </div>
+</body>
+</html>
