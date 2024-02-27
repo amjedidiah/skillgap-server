@@ -43,7 +43,7 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/contest", createContestRouter);
 app.get("/", (req, res) => {
   res.status(200).json({
-    message:"code runing successfully"
+    message:"server runing successfully"
   })
 })
 
