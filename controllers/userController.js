@@ -419,7 +419,7 @@ console.log("jwt", jwt)
     lastName,
     userEmail,
     jwt,
-    isLoggedIn
+  
   })
     console.log("this is the magic token email", email)
   } catch (error) {
