@@ -28,12 +28,13 @@ const {issuer} = await magic.users.getMetadataByToken(magicToken);
 console.log("this is the magic token issuer", issuer)
 const jwt = createToken(issuer)
 console.log("this is the jwt", jwt)
-return res.status(200).json({jwt})
+return res.status(200).json({jwt:jwt})
   
 }
 
 const userRegisterController = expressAsyncHandler(async (req, res) => {
   try {
+   
     const { firstName, lastName, email, phoneNumber, region, userName, jwt } = req.body
     if(!firstName || !email || !phoneNumber || !region || !userName || !lastName ) {
       throw new Error("Missing credentials");

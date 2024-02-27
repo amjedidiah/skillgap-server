@@ -41,11 +41,7 @@ app.use(passportConfig.initialize());
 // Routes
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/contest", createContestRouter);
-// app.get("/", (req, res) => {
-//   res.status(200).json({
-//     message:"server runing successfully"
-//   })
-// })
+
 
 app.use((req, res, next) => {
   res.status(404).json({
