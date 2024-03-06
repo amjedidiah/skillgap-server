@@ -11,7 +11,7 @@ const sendSuccessEmail = require("../utils/sendSuccessEmail");
 
 
 
-const magicTokenValidationUserController = async (req, res) => {
+const magicTokenValidationUserController = expressAsyncHandler(async (req, res) => {
   const { magicToken } = req.body
 
   // authenticate magicToken
@@ -25,13 +25,15 @@ const magicTokenValidationUserController = async (req, res) => {
 
 // get magic token email
 const {issuer} = await magic.users.getMetadataByToken(magicToken);
+
+
 console.log("this is the magic token issuer", issuer)
 const jwt = createToken(issuer)
 console.log("this is the jwt", jwt)
 return res.status(200).json({jwt:jwt})
   
 }
-
+)
 const userRegisterController = expressAsyncHandler(async (req, res) => {
   try {
    
@@ -76,6 +78,7 @@ const isJwtValid = validateJwt(jwt)
 
     // send success email
 await sendSuccessEmail(email,'Email Verification Success', firstName)
+
     res.status(201).json({
       status: "success",
       message: "User created successfully",
@@ -273,9 +276,25 @@ res.status(200).json({
 })
 
 const logOutUserController = expressAsyncHandler(async (req, res) => {
- res.cookie("token", "", {
-  maxAge:1
- })
+const {jwt} = req.body
+
+if(!jwt) throw new Error("Jwt is required")
+
+
+
+const issuer = validateJwt(jwt)
+
+const magic = await Magic.init(process.env.Magic_Api_Key)
+const {email} = magic.users.getMetadataByIssuer(isSecureContext)
+
+if(!email) throw new Error("failed to obtain user email from jwt")
+
+const foundUser = await UserModel.findOne({email})
+if(!foundUser) throw new Error("User not found")
+
+foundUser.isLoggedIn = false
+await foundUser.save()
+
 res.status(200).json({
   statusbar: "success",
   message: "User logged out successfully"
@@ -422,11 +441,27 @@ console.log("jwt", jwt)
     jwt,
     isLoggedIn
   })
-    console.log("this is the magic token email", email)
+   
   } catch (error) {
     throw new Error(error)
   }
 })
+
+
+const doesEmailExistUserController = expressAsyncHandler(async(req, res) => {
+   const {email} = req.body
+   console.log(req.body)
+   if(!email) throw new Error("Email is required")
+   // convert email to lowercase
+  const newEmail = email.toLowerCase()
+   const foundUser = await UserModel.findOne({email:newEmail})
+  if(!foundUser) throw new Error("User not found")
+  res.status(200).json({
+    status: true,
+   doesEmailExist: true
+  })
+})
+
 
 module.exports = {
   userRegisterController,
@@ -441,5 +476,6 @@ module.exports = {
   emailVerificationTokenConfirmationUserController,
   loginUserWithMagic,
   sendEmailVerificationUserController,
-  magicTokenValidationUserController 
+  magicTokenValidationUserController,
+  doesEmailExistUserController 
 };
