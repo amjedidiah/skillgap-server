@@ -75,14 +75,21 @@ const isJwtValid = validateJwt(jwt)
       ...req.body,  skillGapTag: userName
     });
  
-
+createdUser.isLoggedIn = true;
+createdUser.save()
+const {_id, isLoggedIn, email:userEmail} = createdUser
     // send success email
 await sendSuccessEmail(email,'Email Verification Success', firstName)
 
     res.status(201).json({
-      status: "success",
-      message: "User created successfully",
-      data: createdUser._id,
+      status:true,
+    message:"user logged in successfully",
+    id: _id,
+    firstName,
+    lastName,
+    userEmail,
+    jwt,
+    isLoggedIn
     });
   } catch (error) {
     throw new Error(error.message);
