@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 
-const {userRegisterController, userProfileUpdateController,findUserController, createTransferPinUserController, logOutUserController, emailVerificationTokenUserController, emailVerificationTokenConfirmationUserController, loginUserWithMagic, sendEmailVerificationUserController, magicTokenValidationUserController, doesEmailExistUserController } = require("../controllers/userController");
+const {userRegisterController, userProfileUpdateController,findUserController, createTransferPinUserController, logOutUserController, emailVerificationTokenUserController, emailVerificationTokenConfirmationUserController, loginUserWithMagic, sendEmailVerificationUserController, magicTokenValidationUserController, doesEmailExistUserController, CheckEmailExistUserController } = require("../controllers/userController");
 const fileUploadSetting = require('../utils/fileUpload');
 const isAuthenticated = require('../Middleware/isAuthenticated');
 
@@ -23,6 +23,7 @@ userRouter.get("/account-verification-email/:emailToken", emailVerificationToken
 userRouter.post("/createdUser-account-verification", sendEmailVerificationUserController)
 userRouter.post("/validate-magicToken", magicTokenValidationUserController)
 userRouter.post("/validate-email", doesEmailExistUserController)
+userRouter.post("/does-email-exist", CheckEmailExistUserController)
 
 module.exports = userRouter
 

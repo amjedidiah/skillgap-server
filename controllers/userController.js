@@ -34,6 +34,8 @@ return res.status(200).json({jwt:jwt})
   
 }
 )
+
+
 const userRegisterController = expressAsyncHandler(async (req, res) => {
   try {
    
@@ -43,7 +45,7 @@ const userRegisterController = expressAsyncHandler(async (req, res) => {
     }
 
 
-    console.log("this is the jwt", jwt)
+
 
     // verify the jwt
 const isJwtValid = validateJwt(jwt)
@@ -309,7 +311,6 @@ res.status(200).json({
 })
 
 
-
 const emailVerificationTokenUserController = expressAsyncHandler(async(req, res) => {
   // find the user in the db
   const user = await UserModel.findById(req.user)
@@ -457,6 +458,7 @@ console.log("jwt", jwt)
 
 const doesEmailExistUserController = expressAsyncHandler(async(req, res) => {
    const {email} = req.body
+
    console.log(req.body)
    if(!email) throw new Error("Email is required")
    // convert email to lowercase
@@ -467,6 +469,20 @@ const doesEmailExistUserController = expressAsyncHandler(async(req, res) => {
     status: true,
    doesEmailExist: true
   })
+})
+
+const CheckEmailExistUserController = expressAsyncHandler(async(req, res) => {
+  const {email} = req.body
+
+  if(!email) throw new Error("Email is required")
+  // convert email to lowercase
+ const newEmail = email.toLowerCase()
+  const foundUser = await UserModel.findOne({email:newEmail})
+ if(foundUser) throw new Error("Email allready exist")
+ res.status(200).json({
+   status: true,
+  doesEmailExist: false
+ })
 })
 
 
@@ -484,5 +500,6 @@ module.exports = {
   loginUserWithMagic,
   sendEmailVerificationUserController,
   magicTokenValidationUserController,
-  doesEmailExistUserController 
+  doesEmailExistUserController,
+  CheckEmailExistUserController 
 };
