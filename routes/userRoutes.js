@@ -17,7 +17,7 @@ userRouter.put("/profileUpdate",isAuthenticated,upload.single("image"), userProf
 userRouter.post("/login", loginUserWithMagic)
 userRouter.get("/",isAuthenticated,findUserController)
 userRouter.post("/createPin",isAuthenticated, createTransferPinUserController)
-userRouter.get("/logOut",isAuthenticated, logOutUserController)
+userRouter.post("/logOut",isAuthenticated, logOutUserController)
 userRouter.get("/account-verification-email", isAuthenticated,  emailVerificationTokenUserController)
 userRouter.get("/account-verification-email/:emailToken", emailVerificationTokenConfirmationUserController)
 userRouter.post("/createdUser-account-verification", sendEmailVerificationUserController)

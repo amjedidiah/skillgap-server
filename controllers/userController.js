@@ -285,21 +285,8 @@ res.status(200).json({
 })
 
 const logOutUserController = expressAsyncHandler(async (req, res) => {
-const {jwt} = req.body
 
-if(!jwt) throw new Error("Jwt is required")
-
-
-
-const issuer = validateJwt(jwt)
-
-const magic = await Magic.init(process.env.Magic_Api_Key)
-const {email} = magic.users.getMetadataByIssuer(isSecureContext)
-
-if(!email) throw new Error("failed to obtain user email from jwt")
-
-const foundUser = await UserModel.findOne({email})
-if(!foundUser) throw new Error("User not found")
+const foundUser = req.user
 
 foundUser.isLoggedIn = false
 await foundUser.save()
@@ -425,9 +412,10 @@ console.log("email", email)
 
 
   foundUser.isLoggedIn = true
+  
+  await foundUser.save()
   const {_id, firstName, lastName, email:userEmail, isLoggedIn } = foundUser
 
-  await foundUser.save()
 
 // create jwt token and cookie
 const jwt = createToken(_id)

@@ -1,21 +1,27 @@
-const passport = require('passport')
+const expressAsyncHandler = require('express-async-handler')
+const { Magic } = require('@magic-sdk/admin');
+const { validateJwt } = require('../utils/jwt');
+const UserModel = require('../models/user');
 
 
-const isAuthenticated = (req, res, next) => {
- 
-passport.authenticate("jwt", {session: false}, (err, user, info) => {
-
-if(err || !user){
- return res.status(401).json({
-    error : err? err?.message : undefined,
-    message: info ? info.message : "user not logged in"
- })
+const isAuthenticated = expressAsyncHandler(async (req, res, next) => {
+   const {email} = req.body
+   console.log(email)
+   const getAllUsers = await UserModel.find()
+   console.log(getAllUsers)
+   const foundUser = await UserModel.findOne({email})
+   console.log(foundUser)
+   if(!foundUser){
+   throw new Error("User not found")
+   }
+if(!foundUser.isLoggedIn){
+   throw new Error("User not logged in")
 }
-   req.user = user._id
+   
+req.user = foundUser
 next()
-})(req, res, next);
 
-}
+})
 
 
 module.exports = isAuthenticated
