@@ -4,8 +4,8 @@ const UserModel = require('../models/user');
 
 const isAuthenticated = expressAsyncHandler(async (req, res, next) => {
    const {email} = req.body
+   console.log(req.body)
    const foundUser = await UserModel.findOne({email})
-   console.log(foundUser)
    if(!foundUser){
    throw new Error("User not found")
    }

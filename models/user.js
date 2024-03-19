@@ -8,16 +8,20 @@ const userSchema = mongoose.Schema({
     firstName: {
         type: String,
          required: true,
+
         },
     userName: {
             type: String,
              required: true,
              unique: true,
+             lowercase: true
+            
             },
    skillGapTag: {
               type: String,
                required: true,
                unique: true,
+               lowercase: true
               },
     lastName: {
             type: String,
@@ -26,7 +30,8 @@ const userSchema = mongoose.Schema({
     email: {
         type: String,
          required: true,
-          unique: true
+          unique: true,
+          lowercase: true
         },
     region: {
             type: String,
@@ -34,7 +39,8 @@ const userSchema = mongoose.Schema({
             },
     phoneNumber: {
                 type: String,
-                 required: true
+                 required: true,
+                 unique: true
                 },
     transferPin: {
         type: Number, 

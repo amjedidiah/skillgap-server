@@ -16,7 +16,7 @@ const magicTokenValidationUserController = expressAsyncHandler(async (req, res) 
 
   // authenticate magicToken
   if(!magicToken)  throw new Error("Magic token is required")
- console.log("this is the magic token", magicToken)
+
     // connecting to magic server
   const magic = await Magic.init(process.env.Magic_Api_Key)
  
@@ -27,9 +27,8 @@ const magicTokenValidationUserController = expressAsyncHandler(async (req, res) 
 const {issuer} = await magic.users.getMetadataByToken(magicToken);
 
 
-console.log("this is the magic token issuer", issuer)
 const jwt = createToken(issuer)
-console.log("this is the jwt", jwt)
+
 return res.status(200).json({jwt:jwt})
   
 }
@@ -101,7 +100,7 @@ await sendSuccessEmail(email,'Email Verification Success', firstName)
 
 // user login
 const userLoginController = expressAsyncHandler(async (req, res, next) => {
-  console.log(req.body)
+
   passport.authenticate("local", (err, user, info) => {
     if (err) return next(err);
     if (!user) return res.status(401).json({ message: info.message });
@@ -150,7 +149,7 @@ const depositUser = expressAsyncHandler(async (req, res) => {
         time,
         transactionType,
       };
-      console.log(findUser.deposits);
+   
       findUser.deposits.push(data);
       findUser.balance = newBalance;
       await findUser.save();
@@ -187,7 +186,7 @@ const withdrawUser = expressAsyncHandler(async (req, res) => {
         time,
         transactionType,
       };
-      console.log(findUser.deposits);
+   
       findUser.balance = newBalance;
       findUser.withdrawal.push(data);
 
@@ -308,7 +307,7 @@ const emailVerificationTokenUserController = expressAsyncHandler(async(req, res)
  if(user.isEmailVerified){
      throw new Error("Email already verified")
  }
- // console.log("from email",user)
+
  const emailToken = await user.generateEmailVerificationToken()
  
  const savedUser = await user.save()
@@ -326,7 +325,7 @@ const emailVerificationTokenUserController = expressAsyncHandler(async(req, res)
  
  const emailVerificationTokenConfirmationUserController =  expressAsyncHandler(async(req, res) => {
  const {emailToken} = req.params
- console.log("this is the email token", emailToken)
+
  if(!emailToken){
     throw new Error("User email verification token is required")
  }
@@ -346,12 +345,12 @@ const encryptedToken = crypto.createHash("sha256").update(emailToken).digest("he
  foundUser.accountVerificationToken = null
  foundUser.accountVerificationTokenExpires = null
  await foundUser.save()
- console.log("validated user",foundUser)
+
 // \\views\\layouts\\main.handlebars'"
 
  const {email, firstName} = foundUser
  await sendSuccessEmail(email,'Email Verification Success', firstName)
- console.log("ran here")
+ 
 //  res.status(200).json({message:"sucess"})
  res.render("webMessageForSuccessEmailVerification", {firstName})
  })
@@ -403,7 +402,7 @@ const loginUserWithMagic = expressAsyncHandler(async (req, res) => {
 
   // get magic token email
   const {email} = await magic.users.getMetadataByToken(magicToken)
-console.log("email", email)
+
   // get the user with email from the db
   const foundUser = await UserModel.findOne({email})
   if(!foundUser){
@@ -419,7 +418,7 @@ console.log("email", email)
 
 // create jwt token and cookie
 const jwt = createToken(_id)
-console.log("jwt", jwt)
+
 // res.cookie("user-login",jwt, {
 //   maxAge: 60 * 60 * 24 * 1000, // 24 hours
 //   secure: false, // Set to true if using HTTPS
@@ -447,10 +446,12 @@ console.log("jwt", jwt)
 const doesEmailExistUserController = expressAsyncHandler(async(req, res) => {
    const {email} = req.body
 
-   console.log(req.body)
    if(!email) throw new Error("Email is required")
+
    // convert email to lowercase
   const newEmail = email.toLowerCase()
+ 
+
    const foundUser = await UserModel.findOne({email:newEmail})
   if(!foundUser) throw new Error("User not found")
   res.status(200).json({
@@ -459,20 +460,37 @@ const doesEmailExistUserController = expressAsyncHandler(async(req, res) => {
   })
 })
 
-const CheckEmailExistUserController = expressAsyncHandler(async(req, res) => {
-  const {email} = req.body
+const CheckEmailOrPhoneNumberOrUserNameExistUserController = expressAsyncHandler(async(req, res) => {
+  const {email, phoneNumber, userName} = req.body
 
   if(!email) throw new Error("Email is required")
+  if(!userName) throw new Error("User name is required")
+  if(!phoneNumber) throw new Error("Phone number is required")
+
+  
   // convert email to lowercase
  const newEmail = email.toLowerCase()
-  const foundUser = await UserModel.findOne({email:newEmail})
- if(foundUser) throw new Error("Email allready exist")
+ const newUserName = userName.toLowerCase()
+  const doesEmailExist = await UserModel.findOne({email:newEmail})
+  if(doesEmailExist) throw new Error("Email allready exist")
+  const doesPhoneNumberExist = await UserModel.findOne({phoneNumber})
+  if(doesPhoneNumberExist) throw new Error("Phone number allready exist")
+  const doesUserNameExist = await UserModel.findOne({userName:newUserName})
+  if(doesUserNameExist) throw new Error("User name allready exist")
+
  res.status(200).json({
    status: true,
-  doesEmailExist: false
+  doesEmailOrPhoneNumberOrUserNameExist: false
  })
 })
 
+
+const findAllUser = expressAsyncHandler(async(req,res) => {
+const users= await UserModel.find()
+res.status(200).json({
+  users
+})
+})
 
 module.exports = {
   userRegisterController,
@@ -489,5 +507,6 @@ module.exports = {
   sendEmailVerificationUserController,
   magicTokenValidationUserController,
   doesEmailExistUserController,
-  CheckEmailExistUserController 
+  CheckEmailOrPhoneNumberOrUserNameExistUserController,
+  findAllUser
 };

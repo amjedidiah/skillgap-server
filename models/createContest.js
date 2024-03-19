@@ -1,17 +1,28 @@
 const mongoose = require('mongoose');
-const crypto = require("crypto");
-const generateRandomIntegers = require('../utils/generateRandomIntegers');
-
-
 
 const createContestSchema = mongoose.Schema({
+
     isOnline: {
         type: Boolean,
          required: true,
           default: true
         },
-     opponentSkillGapTag: {
-            type: [String],
+        contestStatus: {
+        type: String,
+         required: true,
+          default: "pending"
+        },
+    isPrivate: {
+        type: Boolean,
+         required: true,
+        },
+        opponentIdArray: {
+            type: [
+             {
+                type: mongoose.Schema.Types.ObjectId,
+                ref:"userReg",
+             }
+            ],
              required: false,
             },
    category: {
@@ -28,6 +39,10 @@ const createContestSchema = mongoose.Schema({
         },
     hashTags: {
             type:[String]
+        },
+        hostId: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true
         }
 }, {timestamps: true})
 
