@@ -77,16 +77,15 @@ const userSchema = mongoose.Schema({
          default: null,
          
     },
-    isEmailVerified:{
-    type: Boolean,
-    default: false
-    },
     expoPushNotificationToken:{
     type: Boolean,
     default: false
     },
     totalEarnings: { type: Number, default: 0 },
-    isLoggedIn: { type: Boolean, default: false}
+    isLoggedIn: { type: Boolean, default: false},
+    balance: { type: Number, 
+        default:0
+        }
     
     
 }, {timestamps: true})

@@ -14,14 +14,21 @@ const createContestController = expressAsyncHandler(async (req, res) => {
     termsAndDescription,
   } = req.body;
 
- 
+  // check if user has sufficient balance to stake from
+  const {balance, email} = req.user
+
+  if(balance < stake){
+  throw new Error("Insufficient balance to stake")
+  }
+
+
 // set the contest to be public by default
 
   let isPrivate = false
   const { skillGapTag: userSkillGapTag, _id:hostId } = req.user;
-  console.log("user skillGap tag", userSkillGapTag);
+
   console.log(req.body)
-  console.log("this is the userSkillGapTag",userSkillGapTag, hostId)
+
   let skillGapError;
   // cheque if a user exist with the skillGapTags provide
 
@@ -45,13 +52,13 @@ if(opponentSkillGapTag.length > 0){
     const skillGapUser = await UserModel.findOne({
       skillGapTag: opponentSkillGapTag[index],
     });
-  console.log("1")
+
     if (!skillGapUser) {
       skillGapError = `No user with skill gap tag ${opponentSkillGapTag[index]} found`;
       opponentIdArray = [];
       break;
     }
-    console.log(2)
+ 
     opponentIdArray.push(skillGapUser._id);
   }
 
@@ -71,6 +78,17 @@ if(opponentSkillGapTag.length > 0){
   )
     throw new Error("Skill gap create contetest requirements not implemented");
 
+
+  //  const updatedUserBalance = await UserModel.findOneAndUpdate({
+  //   email,
+  //   balance: balance - stake
+  //  }) 
+
+  // Start a new transaction
+  // const session = await mongoose.startSession();
+
+  // mongoose.startTransaction()
+
   const contestCreated = await CreateContestModel.create({
     isPrivate,
     isOnline,
@@ -82,7 +100,24 @@ if(opponentSkillGapTag.length > 0){
     hostId
   });
 
+// update the balance after createing contest
 
+const updateBalance = await UserModel.findOneAndUpdate({
+  email
+},
+{
+  balance: balance - stake
+}, {
+  new: true
+})
+
+const {balance : newBalance} = updateBalance
+
+
+     // Commit the transaction
+//  await session.commitTransaction();
+
+console.log("this is the new Balance", newBalance)
   res.status(200).json({
     status: true,
     message: "contest created successfully",
@@ -93,7 +128,8 @@ if(opponentSkillGapTag.length > 0){
    isPrivate,
    userSkillGapTag,
    contestStatus: contestCreated?.contestStatus,
-   id: contestCreated?._id 
+   id: contestCreated?._id ,
+   balance: newBalance
   
   });
 });
@@ -134,7 +170,8 @@ const getAllContestForUserController = expressAsyncHandler(async(req, res) => {
      if(allContest.length == 0){
       return res.status(200).json({
         status:false,
-        message: "contest fetched successfully"
+        message: "contest fetched successfully",
+        allContest:[]
       });
        
 
@@ -207,7 +244,7 @@ allContest.forEach(element => {
 
 });
 
-  console.log(allContest)
+  console.log(formatedContestArray)
      res.status(200).json({
       status: true,
       message: "contest fetched successfully",

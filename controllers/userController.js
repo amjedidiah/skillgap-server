@@ -73,12 +73,12 @@ const isJwtValid = validateJwt(jwt)
     // save user to db
 
     const createdUser = await UserModel.create({
-      ...req.body,  skillGapTag: userName
+      ...req.body,  skillGapTag: userName, balance: 2000
     });
  
 createdUser.isLoggedIn = true;
 createdUser.save()
-const {_id, isLoggedIn, email:userEmail} = createdUser
+const {_id, isLoggedIn, email:userEmail, balance} = createdUser
     // send success email
 await sendSuccessEmail(email,'Email Verification Success', firstName)
 
@@ -90,7 +90,8 @@ await sendSuccessEmail(email,'Email Verification Success', firstName)
     lastName,
     userEmail,
     jwt,
-    isLoggedIn
+    isLoggedIn,
+    balance
     });
   } catch (error) {
     throw new Error(error.message);
@@ -413,8 +414,8 @@ const loginUserWithMagic = expressAsyncHandler(async (req, res) => {
   foundUser.isLoggedIn = true
   
   await foundUser.save()
-  const {_id, firstName, lastName, email:userEmail, isLoggedIn } = foundUser
-
+  const {_id, firstName, lastName, email:userEmail, isLoggedIn, balance } = foundUser
+console.log("login data", foundUser)
 
 // create jwt token and cookie
 const jwt = createToken(_id)
@@ -428,13 +429,14 @@ const jwt = createToken(_id)
 
   res.status(200).json({
     status:true,
-    message:"user logged in successfully",
+    message:"user logged in successfully now",
     id: _id,
     firstName,
     lastName,
     userEmail,
     jwt,
-    isLoggedIn
+    isLoggedIn,
+    balance
   })
    
   } catch (error) {
