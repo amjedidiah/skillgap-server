@@ -128,6 +128,7 @@ const {balance : newBalance} = updateBalance
    contestStatus: contestCreated?.contestStatus,
    id: contestCreated?._id ,
    balance: newBalance,
+   termsAndDescription:contestCreated?.termsAndDescription,
    contestType,
    opponentProfilePicAndSkillGapTagArray: contestType !== "public" ? opponentProfilePicAndSkillGapTagArray : null,
    createdAt:contestCreated?.createdAt,
