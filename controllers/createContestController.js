@@ -11,31 +11,36 @@ const createContestController = expressAsyncHandler(async (req, res) => {
     category,
     stake,
     hashTags,
-    termsAndDescription,
+    termsAndDescription
   } = req.body;
 
   // check if user has sufficient balance to stake from
   const {balance, email} = req.user
-
+console.log(req.body)
   if(balance < stake){
   throw new Error("Insufficient balance to stake")
   }
 
-
+let contestType = "public"
 // set the contest to be public by default
 
-  let isPrivate = false
   const { skillGapTag: userSkillGapTag, _id:hostId } = req.user;
 
-  console.log(req.body)
 
   let skillGapError;
   // cheque if a user exist with the skillGapTags provide
 
-  console.log(opponentSkillGapTag);
+
   let opponentIdArray = [];
+  let opponentProfilePicAndSkillGapTagArray = []
 if(opponentSkillGapTag.length > 0){
-  isPrivate = true
+  if(opponentSkillGapTag.length === 1){
+  contestType = "private"
+  }else{
+    contestType = "group"
+  }
+
+  
   // check if the array of skillgapTag contains the users skillGapTag
   
   for (let index = 0; index < opponentSkillGapTag.length; index++) {
@@ -60,6 +65,10 @@ if(opponentSkillGapTag.length > 0){
     }
  
     opponentIdArray.push(skillGapUser._id);
+    opponentProfilePicAndSkillGapTagArray.push({
+      profilePic: skillGapUser.profilePic,
+      userName : skillGapUser.userName
+    })
   }
 
 
@@ -79,25 +88,17 @@ if(opponentSkillGapTag.length > 0){
     throw new Error("Skill gap create contetest requirements not implemented");
 
 
-  //  const updatedUserBalance = await UserModel.findOneAndUpdate({
-  //   email,
-  //   balance: balance - stake
-  //  }) 
 
-  // Start a new transaction
-  // const session = await mongoose.startSession();
-
-  // mongoose.startTransaction()
 
   const contestCreated = await CreateContestModel.create({
-    isPrivate,
     isOnline,
     category,
     stake,
     hashTags,
     termsAndDescription,
     opponentIdArray,
-    hostId
+    hostId,
+    contestType
   });
 
 // update the balance after createing contest
@@ -116,21 +117,20 @@ const {balance : newBalance} = updateBalance
 
      // Commit the transaction
 //  await session.commitTransaction();
-
-console.log("this is the new Balance", newBalance)
   res.status(200).json({
     status: true,
     message: "contest created successfully",
    isOnline,
-   opponentSkillGapTag: opponentSkillGapTag.length > 0 ? opponentSkillGapTag[0] : null,
+   opponentSkillGapTag: contestType === 'public' ? null : opponentSkillGapTag[0],
    stake,
-   category: category.categoryMain,
-   isPrivate,
+   category: category.categoryHeading,
    userSkillGapTag,
    contestStatus: contestCreated?.contestStatus,
    id: contestCreated?._id ,
-   balance: newBalance
-  
+   balance: newBalance,
+   contestType,
+   opponentProfilePicAndSkillGapTagArray: contestType !== "public" ? opponentProfilePicAndSkillGapTagArray : null,
+   createdAt:contestCreated?.createdAt,
   });
 });
 
@@ -165,7 +165,7 @@ const getAllContestForUserController = expressAsyncHandler(async(req, res) => {
 
      const allContest = await CreateContestModel.find({
      hostId:_id
-     }).populate("opponentIdArray")
+     }).sort({ createdAt: -1 }).populate("opponentIdArray")
 
      if(allContest.length == 0){
       return res.status(200).json({
@@ -232,17 +232,51 @@ const formatedContestArray = []
 //   "__v": 0
 // }
 
+
+
+
+
+
+
+
+//    opponentSkillGapTag: contestType === 'public' ? null : opponentSkillGapTag[0],
+//    stake,
+//    category: category.categoryMain,
+//    userSkillGapTag,
+//    contestStatus: contestCreated?.contestStatus,
+//    id: contestCreated?._id ,
+//    balance: newBalance,
+//    contestType,
+//    opponentProfilePicAndSkillGapTagArray: contestType !== "public" ? opponentProfilePicAndSkillGapTagArray : null
+  
 allContest.forEach(element => {
+  console.log("this are the elements",element)
+  const opponentProfilePicAndSkillGapTagArray = []
+  element.opponentIdArray.length > 0 && element.opponentIdArray.forEach(item => {
+    opponentProfilePicAndSkillGapTagArray.push({
+      profilePic: item.profilePic,
+      userName: item.userName
+    })
+  })
+  
   const item = {}
   item.isOnline = element.isOnline
   item.stake = element.stake
-  item.category = element.category.categoryMain,
-  item.opponentSkillGapTag = element.opponentIdArray[0].skillGapTag,
+  item.subCategory = element.category.categoryHeading
+  item.category = element.category.categoryHeading
+  item.opponentSkillGapTag = element.contestType == "public" ? null : element.opponentIdArray[0].skillGapTag,
   item.contestStatus = element.contestStatus
   item.userSkillGapTag = userName
+  item.id = element._id
+  item.createdAt = element.createdAt
+  item.termsAndDescription = element.termsAndDescription,
+  item.opponentProfilePic = element.contestType == "public" ? null : element.opponentIdArray[0].profilePic
+  item.contestType = element.contestType
+ item.opponentProfilePicAndSkillGapTagArray= element.contestType !== "public" ? opponentProfilePicAndSkillGapTagArray : null
   formatedContestArray.push(item)
 
 });
+
 
   console.log(formatedContestArray)
      res.status(200).json({

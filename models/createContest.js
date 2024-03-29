@@ -12,9 +12,9 @@ const createContestSchema = mongoose.Schema({
          required: true,
           default: "pending"
         },
-    isPrivate: {
-        type: Boolean,
-         required: true,
+        contestType:{
+            type:String,
+            required: true
         },
         opponentIdArray: {
             type: [

@@ -51,6 +51,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   const errorMessage = err.message;
+  console.log(err.message)
   // the stack proprty tells what area in the application the error happenz
   const stack = err.stack;
   res.status(500).json({

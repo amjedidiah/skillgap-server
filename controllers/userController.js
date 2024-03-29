@@ -286,11 +286,12 @@ res.status(200).json({
 
 const logOutUserController = expressAsyncHandler(async (req, res) => {
 
+
 const foundUser = req.user
 
 foundUser.isLoggedIn = false
 await foundUser.save()
-
+console.log(" ran at logout")
 res.status(200).json({
   statusbar: "success",
   message: "User logged out successfully"
@@ -414,8 +415,9 @@ const loginUserWithMagic = expressAsyncHandler(async (req, res) => {
   foundUser.isLoggedIn = true
   
   await foundUser.save()
-  const {_id, firstName, lastName, email:userEmail, isLoggedIn, balance } = foundUser
-console.log("login data", foundUser)
+  const {_id, firstName, lastName, email:userEmail, isLoggedIn, balance, userName, 
+    profilePic } = foundUser
+console.log("login data", profilePic, _id)
 
 // create jwt token and cookie
 const jwt = createToken(_id)
@@ -436,7 +438,9 @@ const jwt = createToken(_id)
     userEmail,
     jwt,
     isLoggedIn,
-    balance
+    balance,
+    userName,
+    profilePic
   })
    
   } catch (error) {
