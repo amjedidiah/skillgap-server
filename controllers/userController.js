@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const sendAccountVerificationEmail = require("../utils/sendAccountVerificationEmail");
 const { createToken, validateJwt } = require("../utils/jwt");
 const sendSuccessEmail = require("../utils/sendSuccessEmail");
+const sendExpoPushNotification = require("../utils/sendExpoPushNotification");
 
 
 
@@ -498,6 +499,15 @@ res.status(200).json({
 })
 })
 
+
+const testPushNotification = expressAsyncHandler(async(req, res) => {
+  const {expoNotification} = req.body
+ await sendExpoPushNotification(expoNotification)
+ res.status(200).json({
+  message:"notification sent",
+  status: true
+ })
+})
 module.exports = {
   userRegisterController,
   userLoginController,
@@ -514,5 +524,6 @@ module.exports = {
   magicTokenValidationUserController,
   doesEmailExistUserController,
   CheckEmailOrPhoneNumberOrUserNameExistUserController,
-  findAllUser
+  findAllUser,
+  testPushNotification 
 };

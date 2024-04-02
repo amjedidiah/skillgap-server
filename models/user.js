@@ -78,8 +78,8 @@ const userSchema = mongoose.Schema({
          
     },
     expoPushNotificationToken:{
-    type: Boolean,
-    default: false
+    type: String,
+    default: null
     },
     totalEarnings: { type: Number, default: 0 },
     isLoggedIn: { type: Boolean, default: false},

@@ -1,9 +1,10 @@
 const express = require('express');
 const multer = require('multer');
 
-const {userRegisterController, userProfileUpdateController,findUserController, createTransferPinUserController, logOutUserController, emailVerificationTokenUserController, emailVerificationTokenConfirmationUserController, loginUserWithMagic, sendEmailVerificationUserController, magicTokenValidationUserController, doesEmailExistUserController, CheckEmailOrPhoneNumberOrUserNameExistUserController, findAllUser } = require("../controllers/userController");
+const {userRegisterController, userProfileUpdateController,findUserController, createTransferPinUserController, logOutUserController, emailVerificationTokenUserController, emailVerificationTokenConfirmationUserController, loginUserWithMagic, sendEmailVerificationUserController, magicTokenValidationUserController, doesEmailExistUserController, CheckEmailOrPhoneNumberOrUserNameExistUserController, findAllUser, testPushNotification } = require("../controllers/userController");
 const fileUploadSetting = require('../utils/fileUpload');
 const isAuthenticated = require('../Middleware/isAuthenticated');
+const { saveExpoNotitfication } = require('../controllers/createContestController');
 
 const userRouter = express.Router();
 
@@ -26,5 +27,7 @@ userRouter.post("/validate-email", doesEmailExistUserController)
 
 userRouter.post("/does-email-phoneNumber-userName-exist", CheckEmailOrPhoneNumberOrUserNameExistUserController)
 userRouter.get("/all-users", findAllUser)
+userRouter.post("/save-expo-token",isAuthenticated, saveExpoNotitfication)
+userRouter.get("/test-push-notification",testPushNotification)
 
 module.exports = userRouter
