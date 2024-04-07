@@ -128,7 +128,7 @@ const createContestController = expressAsyncHandler(async (req, res) => {
   // _id: new ObjectId('660b1569c9d94c57d5c97da9'),
   // createdAt: 2024-04-01T20:13:29.203Z,
   // updatedAt: 2024-04-01T20:13:29.203Z,
-  __v: 0
+  // __v: 0
 
 
   if (opponentSkillGapTag.length > 0) {
